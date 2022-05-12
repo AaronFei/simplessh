@@ -1,7 +1,6 @@
 package simplessh
 
 import (
-	"bytes"
 	"io"
 	"net"
 	"os"
@@ -35,23 +34,15 @@ func (s *SimpleSsh_t) RemoteRun(cmd string, showRemoteLog bool) error {
 	return err
 }
 
-func (s *SimpleSsh_t) RemoteRunGetResponse(cmd string) (string, error) {
+func (s *SimpleSsh_t) RemoteRunGetResponse(cmd string) ([]byte, error) {
 	session, err := s.Client.NewSession()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer session.Close()
-	output := &bytes.Buffer{}
 
-	stdout, _ := session.StdoutPipe()
-	stderr, _ := session.StderrPipe()
-
-	go io.Copy(output, stdout)
-	go io.Copy(output, stderr)
-
-	err = session.Run(cmd)
-	return output.String(), err
+	return session.Output(cmd)
 }
 
 func (s *SimpleSsh_t) Copy(src string, dest string) error {
